@@ -3,6 +3,7 @@ const express = require('express');
 const {generateTweetFromTopic, generateImageFromTweet} = require("./utils/generateTweet.js");
 const {validatePostTweet, validateTopics} = require('./utils/middlewares.js')
 const {postTweet} = require("./utils/postTweets.js");
+const rateLimiter = require("./utils/rateLimiter.js");
 
 const app = express();
 
@@ -13,7 +14,7 @@ app.get('/', (req,res)=> {
     res.sendFile(__dirname+'/public/index.html')
 })
 
-app.get('/generate-tweet', validateTopics,async(req,res)=> {
+app.get('/generate-tweet', rateLimiter(20,3, "generate-tweet"), validateTopics,async(req,res)=> {
     try {
         const tweet = await generateTweetFromTopic(req.query.topics)
         res.status(200).json({
@@ -26,9 +27,9 @@ app.get('/generate-tweet', validateTopics,async(req,res)=> {
     }
 })
 
-app.get('/generate-tweet-with-image', validateTopics, async (req,res)=> {
+app.get('/generate-tweet-with-image', rateLimiter(30,1,"generate-tweet-with-image"), validateTopics, async (req,res)=> {
     try {
-        
+
         const tweet = await generateTweetFromTopic(req.query.topics);
         const imageUrl = await generateImageFromTweet(req.query.topics, tweet);
 
@@ -43,7 +44,7 @@ app.get('/generate-tweet-with-image', validateTopics, async (req,res)=> {
     }
 })
 
-app.post('/post-tweet', validatePostTweet, async (req,res) => {
+app.post('/post-tweet', rateLimiter(60,2,"post-tweet"), validatePostTweet, async (req,res) => {
     try {
         
         const tweet = req.body.tweet;

@@ -38,20 +38,16 @@ module.exports.postTweet = async (tweet, imageUrl) => {
         if (imageUrl) {
             await downloadImage(imageUrl);
             const mediaId = await twitterClient.v1.uploadMedia(imageUrl);
-
             const response = await twitterClient.v1.tweet(tweet,{media_ids:[mediaId]});
-
             return response;
         }
         else{
-
             const response = await twitterClient.v1.tweet(tweet);
             return response;
         }
 
 
     } catch (error) {
-        
         throw error
     }
 }
